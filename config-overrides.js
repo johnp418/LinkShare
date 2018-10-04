@@ -1,7 +1,7 @@
 /* config-overrides.js */
 
 // const rewireStyledComponents = require('react-app-rewire-styled-components');
-const rewireReactHotLoader = require("react-app-rewire-hot-loader");
+// const rewireReactHotLoader = require("react-app-rewire-hot-loader");
 
 module.exports = {
   // The Webpack config to use when compiling your react app for development or production.
@@ -10,7 +10,7 @@ module.exports = {
     // Example: add less support to your app.
     // const rewireLess = require('react-app-rewire-less');
     // config = rewireLess(config, env);
-    config = rewireReactHotLoader(config, env);
+    // config = rewireReactHotLoader(config, env);
     return config;
   },
   // The Jest config to use when running your jest tests - note that the normal rewires do not

@@ -1,0 +1,15 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "description": "",
+  "main": "bookmark-parser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "John Park",
+  "license": "ISC",
+  "dependencies": {
+    "bookmarks-parser": "^1.1.0",
+    "ramda": "^0.25.0"
+  }
+}
