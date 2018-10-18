@@ -4,12 +4,28 @@
   "description": "",
   "main": "bookmark-parser.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon server.js",
+    "init": "scripts/init.sh",
+    "plan": "scripts/plan.sh",
+    "deploy": "scripts/deploy.sh",
+    "reset": "scripts/reset-terraform.sh"
   },
   "author": "John Park",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.1",
+    "aws-sdk": "^2.328.0",
+    "bluebird": "^3.5.2",
+    "body-parser": "^1.18.3",
     "bookmarks-parser": "^1.1.0",
+    "camelcase-keys": "^4.2.0",
+    "debug": "^4.1.0",
+    "express": "^4.16.3",
+    "morgan": "^1.9.1",
     "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "lambda-local": "^1.5.1",
+    "nodemon": "^1.18.4"
   }
 }

@@ -22,3 +22,8 @@ yarn-error.log*
 
 # editor
 .vscode
+
+# Terraform
+.terraform
+*.tfvars
+*.tfstate
