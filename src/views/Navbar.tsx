@@ -2,7 +2,8 @@ import * as React from "react";
 import { Link, withRouter } from "react-router-dom";
 import styled from "styled-components";
 import { Icon } from "../components/global";
-import { Auth } from "aws-amplify";
+import { History, Location } from "history";
+// import { Auth } from "aws-amplify";
 
 const NavbarContainer = styled.nav`
   display: flex;
@@ -20,7 +21,10 @@ const Menu = styled.div`
   align-items: center;
   padding: 16px 0px;
 `;
-const MenuButtonContainer = styled.div`
+// styled.div<{ color?: string }>`
+//   color: ${p => p.color || 'red'}
+// `;
+const MenuButtonContainer = styled.div<{ grow?: boolean }>`
   /* flex: 1; */
   ${props => props.grow && `flex: 1`};
 `;
@@ -48,22 +52,27 @@ const StyledLink = styled(Link)`
   /* cursor: pointer; */
 `;
 
-class Navbar extends React.Component {
+interface Props {
+  history: History;
+  location: Location;
+}
+
+class Navbar extends React.Component<Props> {
   state = {};
 
   async componentDidMount() {
-    const userInfo = await Auth.currentUserInfo();
-    if (userInfo) {
-      console.log("UserInfo ", userInfo);
-      this.setState({ user: userInfo });
-    }
+    // const userInfo = await Auth.currentUserInfo();
+    // if (userInfo) {
+    //   console.log("UserInfo ", userInfo);
+    //   this.setState({ user: userInfo });
+    // }
   }
 
   render() {
     if (this.props.location.pathname.includes("/auth")) {
-      return null;
+      return undefined;
     }
-    console.log("Navbar ", this.props);
+    // console.log("Navbar ", this.props);
 
     return (
       <NavbarContainer>
@@ -81,7 +90,7 @@ class Navbar extends React.Component {
             </MenuButton>
           </MenuButtonContainer>
           <MenuButtonContainer>
-            {this.state.userInfo && (
+            {/* {this.state.userInfo && (
               <MenuButton>
                 <button
                   onClick={() => {
@@ -98,13 +107,13 @@ class Navbar extends React.Component {
                   Sign Out
                 </button>
               </MenuButton>
-            )}
+            )} */}
             <MenuButton>
-              {this.state.userInfo ? (
+              {/* {this.state.userInfo ? (
                 <button>UserName here</button>
               ) : (
                 <StyledLink to="/auth/login">Sign In</StyledLink>
-              )}
+              )} */}
             </MenuButton>
           </MenuButtonContainer>
         </Menu>
@@ -113,4 +122,4 @@ class Navbar extends React.Component {
   }
 }
 
-export default withRouter(Navbar);
+export default (withRouter as any)(Navbar);

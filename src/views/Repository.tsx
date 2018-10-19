@@ -14,26 +14,26 @@ import StarIcon from "@material-ui/icons/Star";
 // Title: "ez-backend"
 // UserId: "John Park"
 
-type RepositoryProps = {
-  id: string,
-  userId: string,
-  title: string,
-  like: number,
-  dislike: number,
-  addDate: Date,
-  lastModified: Date
-};
+interface RepositoryProps {
+  id: string;
+  userId: string;
+  title: string;
+  like: number;
+  dislike: number;
+  addDate: Date;
+  lastModified: Date;
+}
 
 class Repository extends React.Component<RepositoryProps> {
   render() {
     const {
       id,
       userId,
-      title,
-      like,
-      dislike,
-      addDate,
-      lastModified
+      title
+      // like,
+      // dislike,
+      // addDate,
+      // lastModified
     } = this.props;
     // TODO: Show like / dislike button / date
     return (

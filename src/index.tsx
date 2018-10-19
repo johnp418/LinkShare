@@ -1,12 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { ConnectedRouter } from "connected-react-router";
 import configureStore, { history } from "./configureStore";
 import Routes from "./hot-routes";
 import "normalize.css";
 import "./index.css";
-// import * as serviceWorker from './serviceWorker';
 
 // import awsConfig from "./aws-config";
 // import Amplify, { Hub, Logger } from "aws-amplify";
@@ -51,6 +50,7 @@ import "./index.css";
 //     // OPTIONAL - Manually set the authentication flow type. Default is 'USER_SRP_AUTH'
 //     // authenticationFlowType: 'USER_PASSWORD_AUTH'
 //   }
+
 // });
 
 const store = configureStore();

@@ -14,7 +14,6 @@ To get started, you will need AWS-cli, local DynamoDB jar file, and terraform cl
 
 ## TODO
 
-- Delete repository
 - User authentication
 - Add typing with flow or typescript
 - UserRepoVote APIs + UI + DB

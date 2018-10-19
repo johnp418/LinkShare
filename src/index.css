@@ -4,3 +4,48 @@ html, body, #root {
   width: 100vw;
   height: 100vh;
 }
+
+/* .john-list {
+  position:relative; box-sizing:border-box; display:inline-block; width:100%; min-height:52px; padding-right:110px !important;
+}
+.john-list * {
+  position:relative; box-sizing:border-box;
+}
+
+.john-list .john-list-toggle-button {
+  display:inline-block; width:24px; height:52px; position:absolute; top:0; left:0; margin:auto; padding:14px 0;
+}
+
+.john-list .john-list-title {
+  display:inline-block; width:100%; height:100%; float:left; padding:0 0 0 30px;
+}
+.john-list .john-list-title > div:first-child {
+  display:inline-block; width:30px; height:100%; position:absolute; top:0; bottom:0; left:0; margin:auto; padding:3px 0;
+}
+
+.john-list .john-list-title > div:nth-child(2) {
+  display:inline-block; width:100%; height:100%; float:left; padding:5px 0;
+}
+.john-list .john-list-title > div:nth-child(2) > span {
+  display:inline-block; width:100%; height:100%; float:left; padding:0; line-height:20px;
+}
+
+.john-list .john-list-action-buttons {
+  display:inline-block; width:auto; height:52px; position:absolute; top:0; right:0; margin:auto;  
+}
+
+.john-list .john-list-action-buttons .john-list-action-button {
+  display:inline-block; min-width:30px; height:100%; float:left;
+}
+
+.john-list .john-list-action-buttons .john-list-action-button > div {
+  display:inline-block; width:auto; height:100%; float:left; padding:0 0 0 25px; line-height:52px;
+}
+
+.john-list .john-list-action-buttons .john-list-action-button > div > svg {
+  display:inline-block; width:20px; height:20px; position:absolute; top:0; bottom:0; left:0; margin:auto;
+}
+
+.john-list .john-list-action-buttons .john-list-action-button > svg {
+  display:inline-block; width:20px; height:20px; line-height:20px; font-size:12px; text-align:center; position:absolute; top:0; bottom:0; left:0; right:0; margin:auto;
+} */

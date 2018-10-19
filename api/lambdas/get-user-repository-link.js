@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const { okResponse, errorResponse } = require("../helpers/gateway-response");
 
 AWS.config.update({
   region: "us-west-2",
@@ -6,25 +7,6 @@ AWS.config.update({
 });
 
 const docClient = new AWS.DynamoDB.DocumentClient();
-
-// const batch = queries => {
-//   if (queries.length === 0) return [];
-//   const batchGet = {
-//     RequestItem: {
-//       UserRepositoryLink: queries.slice(0, 100)
-//     }
-//   };
-//   return docClient
-//     .batchGet(batchGet)
-//     .promise()
-//     .then(batchData => {
-//       const nextQueries = queries.slice(100);
-//       return batchData.concat(batch(nextQueries));
-//     })
-//     .catch(err => {
-//       throw new Error("Failed to carry out batch operation: ", err);
-//     });
-// };
 
 const batchQuery = (repoParams, data) => {
   return docClient
@@ -47,7 +29,7 @@ const batchQuery = (repoParams, data) => {
     });
 };
 
-exports.handler = (event, context, callback) => {
+exports.handler = async (event, context, callback) => {
   console.log("Event ", event);
   console.log("Context ", context);
   // const requestBody = JSON.parse(event.body);
@@ -59,90 +41,72 @@ exports.handler = (event, context, callback) => {
       UserId: userId
     }
   };
-  docClient
-    .get(getRepoQueryParams)
-    .promise()
-    .then(userRepo => {
-      const { Root: root, Title: title } = userRepo.Item;
-      console.log("UserRepo ", userRepo);
-      const getUserRepoParams = {
-        TableName: "UserRepositoryLink",
-        IndexName: "UserRepoIndex",
-        ProjectionExpression:
-          "#I, #T, #LK, ParentId, Title, AddDate, LastModified, #L, Dislike, Children",
-        KeyConditionExpression: "RepositoryId = :r and UserId = :u",
-        ExpressionAttributeNames: {
-          "#I": "Id",
-          "#L": "Like",
-          "#T": "Type",
-          "#LK": "LinkId"
-        },
-        ExpressionAttributeValues: {
-          ":r": id,
-          ":u": userId
-        }
-      };
 
-      batchQuery(getUserRepoParams, [])
-        .then(data => {
-          // console.log("Batch Query Result ", data);
+  try {
+    const userRepo = await docClient.get(getRepoQueryParams).promise();
+    const { Root: root, Title: title } = userRepo.Item;
+    console.log("UserRepo ", userRepo);
+    const getUserRepoParams = {
+      TableName: "UserRepositoryLink",
+      IndexName: "UserRepoIndex",
+      ProjectionExpression:
+        "#I, #T, #LK, ParentId, Title, AddDate, LastModified, #L, Dislike, Children",
+      KeyConditionExpression: "RepositoryId = :r and UserId = :u",
+      ExpressionAttributeNames: {
+        "#I": "Id",
+        "#L": "Like",
+        "#T": "Type",
+        "#LK": "LinkId"
+      },
+      ExpressionAttributeValues: {
+        ":r": id,
+        ":u": userId
+      }
+    };
 
-          // Fetch each url data
-          const links = data.filter(repoLink => repoLink.Type !== "folder");
-          const all = links.map(repoLink => {
-            const getLinkParam = {
-              TableName: "Link",
-              Key: {
-                Id: repoLink.LinkId
-              },
-              ProjectionExpression: "#I, #L, Dislike, Icon, #U, Popularity",
-              ExpressionAttributeNames: {
-                "#I": "Id",
-                "#L": "Like",
-                "#U": "Url"
-              }
-            };
-            return docClient
-              .get(getLinkParam)
-              .promise()
-              .then(result => result.Item);
-          });
-          Promise.all(all).then(linkData => {
-            // console.log("Link Data ", linkData);
-            const repository = data.reduce((acc, repoLink) => {
-              acc[repoLink.Id] = repoLink;
-              return acc;
-            }, {});
-            const link = linkData.reduce((acc, linkItem) => {
-              if (linkItem.Icon === "None") {
-                const { Icon, ...rest } = linkItem;
-                acc[linkItem.Id] = { ...rest };
-              } else {
-                acc[linkItem.Id] = linkItem;
-              }
-              return acc;
-            }, {});
-            context.succeed({
-              statusCode: 200,
-              body: JSON.stringify({ id, title, root, repository, link }),
-              headers: {
-                "Access-Control-Allow-Origin": "*"
-              }
-            });
-          });
-        })
-        .catch(err => {
-          console.log("BatchQuery Error ", err);
-          context.fail({
-            statusCode: 500,
-            body: JSON.stringify({
-              Error: err,
-              Reference: context.awsRequestId
-            }),
-            headers: {
-              "Access-Control-Allow-Origin": "*"
-            }
-          });
-        });
-    });
+    const batchQueryResult = await batchQuery(getUserRepoParams, []);
+    // console.log("Batch Query Result ", data);
+
+    // Fetch each url data
+    const fetchAllLinks = batchQueryResult
+      .filter(repoLink => repoLink.Type !== "folder")
+      .map(repoLink => {
+        const getLinkParam = {
+          TableName: "Link",
+          Key: {
+            Id: repoLink.LinkId
+          },
+          ProjectionExpression: "#I, #L, Dislike, Icon, #U, Popularity",
+          ExpressionAttributeNames: {
+            "#I": "Id",
+            "#L": "Like",
+            "#U": "Url"
+          }
+        };
+        return docClient
+          .get(getLinkParam)
+          .promise()
+          .then(result => result.Item);
+      });
+
+    let links = await Promise.all(fetchAllLinks);
+    links = links.reduce((acc, linkItem) => {
+      if (linkItem.Icon === "None") {
+        const { Icon, ...rest } = linkItem;
+        acc[linkItem.Id] = { ...rest };
+      } else {
+        acc[linkItem.Id] = linkItem;
+      }
+      return acc;
+    }, {});
+
+    const repository = batchQueryResult.reduce((acc, repoLink) => {
+      acc[repoLink.Id] = repoLink;
+      return acc;
+    }, {});
+
+    context.succeed(okResponse({ id, title, root, repository, link: links }));
+  } catch (err) {
+    context.fail(errorResponse(err, context));
+  }
 };

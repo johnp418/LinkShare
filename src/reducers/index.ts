@@ -10,17 +10,18 @@ import error from "./error";
 const {
   FETCH_REPOSITORY,
   FETCH_REPOSITORIES,
-  UPDATE_REPOSITORY,
-  DELETE_REPOSITORY,
+  // UPDATE_REPOSITORY,
+
+  // DELETE_REPOSITORY,
   IMPORT_REPOSITORY
 } = actionTypes;
 
-const byId = (state = {}, action) => {
+const byId = (state = {}, action: any) => {
   switch (action.type) {
     case FETCH_REPOSITORIES.SUCCESS:
       const { payload } = action;
       const nextState = { ...state };
-      payload.forEach(repo => {
+      payload.forEach((repo: any) => {
         nextState[repo.id] = repo;
       });
       return nextState;
@@ -29,11 +30,11 @@ const byId = (state = {}, action) => {
   }
 };
 
-const allIds = (state = [], action) => {
+const allIds = (state = [], action: any) => {
   switch (action.type) {
     case FETCH_REPOSITORIES.SUCCESS:
       const { payload } = action;
-      return payload.map(repo => repo.id);
+      return payload.map((repo: any) => repo.id);
     default:
       return state;
   }
@@ -43,7 +44,7 @@ const activeRepository = (
   state = {
     root: []
   },
-  action
+  action: any
 ) => {
   switch (action.type) {
     case IMPORT_REPOSITORY.SUCCESS:
@@ -51,8 +52,8 @@ const activeRepository = (
       const { title, root, id } = action.payload;
       return {
         ...state,
-        title: title || state.title,
-        id: id || state.id,
+        title: title || (state as any).title,
+        id: id || (state as any).id,
         root
       };
     default:
@@ -65,7 +66,7 @@ const repositories = combineReducers({
   allIds
 });
 
-const repositoryNodes = (state = {}, action) => {
+const repositoryNodes = (state = {}, action: any) => {
   switch (action.type) {
     case IMPORT_REPOSITORY.SUCCESS:
     case FETCH_REPOSITORY.SUCCESS:
@@ -76,7 +77,7 @@ const repositoryNodes = (state = {}, action) => {
   }
 };
 
-const links = (state = {}, action) => {
+const links = (state = {}, action: any) => {
   switch (action.type) {
     case IMPORT_REPOSITORY.SUCCESS:
     case FETCH_REPOSITORY.SUCCESS:

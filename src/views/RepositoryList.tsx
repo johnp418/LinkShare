@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { connect } from "react-redux";
-import { compose } from "redux";
+import { compose, Dispatch } from "redux";
 import Repository from "./Repository";
 import { fetchRepositories } from "../actions";
 import {
@@ -19,8 +19,8 @@ import { withStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
 import ListItemText from "@material-ui/core/ListItemText";
 
-const styles = theme => {
-  console.log("Theme => ", theme);
+const styles = (theme: any) => {
+  // console.log("Theme => ", theme);
   return {
     progress: {
       margin: theme.spacing.unit * 2
@@ -30,16 +30,15 @@ const styles = theme => {
 
 class RepositoryList extends React.Component<any> {
   componentDidMount() {
-    console.log("RepositoryList mount fetch ");
     this.props.fetchRepositories();
   }
 
   render() {
-    const { classes } = this.props;
+    // const { classes } = this.props;
     if (this.props.error) {
       return <BlueScreen error={this.props.error} />;
     }
-    console.log("Props ", this.props);
+    console.log("RepositoryList Props ", this.props);
 
     return (
       <Section>
@@ -54,7 +53,7 @@ class RepositoryList extends React.Component<any> {
                     There is no repository in the system
                   </ListItemText>
                 ) : (
-                  this.props.repositories.allIds.map(id => {
+                  this.props.repositories.allIds.map((id: string) => {
                     return (
                       <Repository
                         key={id}
@@ -76,15 +75,15 @@ class RepositoryList extends React.Component<any> {
 const loadingSelector = createLoadingSelector(["FETCH_REPOSITORIES"]);
 const errorSelector = createErrorMessageSelector(["FETCH_REPOSITORIES"]);
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: any) => ({
   // loading: loadingSelector(state),
   loading: loadingSelector(state),
   error: errorSelector(state),
   repositories: state.entity.repositories
 });
-const mapDispatchToProps = (dispatch, getState) => {
+const mapDispatchToProps = (dispatch: Dispatch, getState: any) => {
   return {
-    fetchRepositories: () => dispatch(fetchRepositories())
+    fetchRepositories: (id: any) => dispatch(fetchRepositories(id) as any)
   };
 };
 

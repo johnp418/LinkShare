@@ -16,7 +16,7 @@ app.get("/repo", (req, res) => {
     .execute({
       event: {},
       lambdaPath: path.join(__dirname, "./lambdas/get-user-repository.js"),
-      timeoutMs: 3000
+      timeoutMs: 6000
     })
     .then(lambdaRes => {
       // console.log(done);
@@ -58,7 +58,7 @@ app.get("/repo/:repositoryId", (req, res) => {
     .execute({
       event: { id: repositoryId, userId: "John Park" },
       lambdaPath: path.join(__dirname, "./lambdas/get-user-repository-link.js"),
-      timeoutMs: 10000
+      timeoutMs: 3000
     })
     .then(lambdaRes => {
       // console.log(done);
@@ -101,7 +101,7 @@ app.delete("/repo/:repositoryId", (req, res) => {
   console.log("DELETE /repo payload: ", repositoryId);
   lambdaLocal
     .execute({
-      event: { repositoryId },
+      event: { id: repositoryId },
       lambdaPath: path.join(__dirname, "./lambdas/delete-repository.js"),
       timeoutMs: 3000
     })

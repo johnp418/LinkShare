@@ -1,35 +1,26 @@
 import * as React from "react";
 import styled from "styled-components";
 
-const StyledTree = styled.ul`
-  /* & ul {
-    margin: 0 0 0 0.75em;
-    padding: 0;
-    position: relative;
-
-    ::before {
-      content: "";
-      width: 0;
-      position: absolute;
-      top: 0
-      left: 0
-      bottom: 0
-      border-left: 1px solid;
-    }
-  } */
-`;
-
 const Container = styled.li`
   list-style-type: none;
   position: relative;
   padding-left: 0.5em;
 `;
 
-export class TreeNodeContainer extends React.Component {
+interface Props {
+  node: any;
+  render: any;
+}
+
+interface State {
+  isOpen: boolean;
+}
+
+export class TreeNodeContainer extends React.Component<Props, State> {
   state = {
     isOpen: true
   };
-  handleClick = e => {
+  handleClick = (e: any) => {
     e.stopPropagation();
     if (this.props.node.type === "folder") {
       this.setState(prev => ({ isOpen: !prev.isOpen }));

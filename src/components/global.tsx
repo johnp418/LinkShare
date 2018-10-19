@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { AxiosError } from "axios";
 
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -18,7 +18,7 @@ export const Loading = () => (
   </LoadingContainer>
 );
 
-export const Icon = props => {
+export const Icon = (props: any) => {
   // const StyledIcon = styled.i`
   // `
   return <i className="material-icons">{props.type}</i>;
@@ -26,7 +26,7 @@ export const Icon = props => {
 
 // Props error type
 export const BlueScreen = (props: { error: AxiosError }) => {
-  const { error } = props;
+  // const { error } = props;
   return (
     <Section>
       <div style={{ color: "red" }}>

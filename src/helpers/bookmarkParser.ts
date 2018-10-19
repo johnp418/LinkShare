@@ -1,9 +1,9 @@
 const R = require("ramda");
-const { hash, generateRandomString } = require("./util");
+const { hash } = require("./util");
 
 // node is a DT element
-function _getNodeData(node) {
-  const data = {};
+function _getNodeData(node: any) {
+  const data: any = {};
 
   for (let i = 0; i !== node.childNodes.length; i++) {
     if (node.childNodes[i].tagName === "A") {
@@ -63,7 +63,7 @@ function _getNodeData(node) {
   return data;
 }
 
-function processDir(dir, level) {
+function processDir(dir: any, level: number) {
   const children = dir.childNodes;
   const items = [];
   let menuRoot;
@@ -92,6 +92,7 @@ function processDir(dir, level) {
           itemData.children = processDir(itemData.__dir_dl, level + 1);
           delete itemData.__dir_dl;
         }
+        // @ts-ignore
         menuRoot.children.push(itemData);
       } else {
         if (itemData.type === "folder" && itemData.__dir_dl) {
@@ -108,12 +109,12 @@ function processDir(dir, level) {
   return items;
 }
 
-export const flatten = (bookmarkTreeNodes, repositoryId) => {
+export const flatten = (bookmarkTreeNodes: any, repositoryId: string) => {
   const repository = {};
   const linkMap = {};
-  const rootIds = [];
+  const rootIds: any = [];
 
-  const flattenR = (parentId, treeNode) => {
+  const flattenR = (parentId: any, treeNode: any) => {
     const {
       type,
       title,
@@ -123,7 +124,8 @@ export const flatten = (bookmarkTreeNodes, repositoryId) => {
       add_date: addDate,
       last_modified: lastModified
     } = treeNode;
-    const nodeId = hash(type + title + parentId + addDate);
+
+    const nodeId = hash(type + title + parentId + new Date().toISOString());
 
     console.log(
       "Current Node Id ",
@@ -153,8 +155,8 @@ export const flatten = (bookmarkTreeNodes, repositoryId) => {
       return currNode;
     }
     // For each child, build an object
-    const childNodes = R.map(child => flattenR(nodeId, child), children);
-    const childKeys = R.map(c => c.id, childNodes);
+    const childNodes = R.map((child: any) => flattenR(nodeId, child), children);
+    const childKeys = R.map((c: any) => c.id, childNodes);
     // console.log("ChildNodes ", childNodes, " childrenIds ", childKeys);
 
     const currNode = {
@@ -168,32 +170,24 @@ export const flatten = (bookmarkTreeNodes, repositoryId) => {
     repository[nodeId] = currNode;
     return currNode;
   };
-  bookmarkTreeNodes.forEach(node => {
+  bookmarkTreeNodes.forEach((node: any) => {
     console.log("Root Node ", node);
-    flattenR(null, node, null);
+    flattenR(null, node);
   });
 
   // console.log("treeMap ", util.inspect(treeMap, false, null, true));
   return { root: rootIds, repository, link: linkMap };
 };
 
-export const parse = (htmlString, repoId) => {
-  return new Promise((resolve, reject) => {
-    const parser = new DOMParser();
+export const parse = (htmlString: any, repoId: string) => {
+  const parser = new DOMParser();
+  const parsed: any = parser.parseFromString(htmlString, "text/html");
+  const dls = parsed.documentElement.getElementsByTagName("DL");
 
-    try {
-      const parsed = parser.parseFromString(htmlString, "text/html");
-      const dls = parsed.documentElement.getElementsByTagName("DL");
-
-      if (dls.length < 0) {
-        throw new Error("File is malformed");
-      } else {
-        const res = processDir(dls[0], 0);
-        resolve(flatten(res, repoId));
-      }
-    } catch (err) {
-      console.error("Error parsing ", err);
-      resolve(err);
-    }
-  });
+  if (dls.length < 0) {
+    throw new Error("File is malformed");
+  } else {
+    const res = processDir(dls[0], 0);
+    return flatten(res, repoId);
+  }
 };

@@ -3,17 +3,23 @@ import { connectRouter, routerMiddleware } from "connected-react-router";
 import { createStore, applyMiddleware, compose } from "redux";
 import { createLogger } from "redux-logger";
 import thunk from "redux-thunk";
-import createSagaMiddleware from "redux-saga";
+// import createSagaMiddleware from "redux-saga";
 import rootReducer from "./reducers";
+import apiMiddleware from "./apiMiddleware";
 // import rootSaga from './sagas';
 import reduxImmutableStateInvariant from "redux-immutable-state-invariant";
 
 export const history = createBrowserHistory();
-const sagaMiddleware = createSagaMiddleware();
+// const sagaMiddleware = createSagaMiddleware();
 
 // Add middlewares / enhancers here
 // const middlewares = [routerMiddleware(history), thunk, sagaMiddleware, createLogger()];
-const middlewares = [routerMiddleware(history), thunk, createLogger()];
+const middlewares = [
+  routerMiddleware(history),
+  thunk,
+  apiMiddleware,
+  createLogger()
+];
 const enhancers: any[] = [];
 
 // Install Chrome extension for Redux devtools
@@ -23,7 +29,7 @@ if (process.env.NODE_ENV === "development") {
   middlewares.unshift(reduxImmutableStateInvariant());
 
   // tslint:disable-next-line
-  const devToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION__;
+  const devToolsExtension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
 
   if (typeof devToolsExtension === "function") {
     enhancers.push(devToolsExtension());

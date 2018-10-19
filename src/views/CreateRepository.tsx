@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
+// import { Link } from "react-router-dom";
+// import styled from "styled-components";
 import { Formik, Field, ErrorMessage, Form } from "formik";
 import axios from "axios";
 import * as Yup from "yup";
-import { Auth } from "aws-amplify";
-import { withAuthenticator, Authenticator } from "aws-amplify-react"; // or 'aws-amplify-react-native';
+// import { Auth } from "aws-amplify";
+// import { withAuthenticator, Authenticator } from "aws-amplify-react"; // or 'aws-amplify-react-native';
 
 import {
   Section,
@@ -13,6 +13,7 @@ import {
   SectionContentContainer,
   SectionHeader
 } from "../components/Section";
+import { History } from "history";
 
 const createRepoValidationSchema = Yup.object().shape({
   name: Yup.string()
@@ -22,11 +23,14 @@ const createRepoValidationSchema = Yup.object().shape({
   isPrivate: Yup.boolean()
 });
 
-const checkAuth = async () => {
-  return await Auth.currentUserInfo();
-};
+// const checkAuth = async () => {
+//   return await Auth.currentUserInfo();
+// };
+interface Props {
+  history: History;
+}
 
-class CreateRepository extends React.Component {
+class CreateRepository extends React.Component<Props> {
   state = {
     loading: false
   };
@@ -62,9 +66,9 @@ class CreateRepository extends React.Component {
               validationSchema={createRepoValidationSchema}
               render={formikProps => {
                 console.log("formikProps ", formikProps);
-                const {
-                  values: { isPrivate }
-                } = formikProps;
+                // const {
+                //   values: { isPrivate }
+                // } = formikProps;
                 return (
                   <Form>
                     <Field

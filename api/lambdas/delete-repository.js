@@ -9,7 +9,7 @@ AWS.config.update({
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = (event, context, callback) => {
-  const { id, userId } = event.body;
+  const { id, userId = "John Park" } = event;
 
   const deleteRepoParams = {
     TableName: "UserRepository",
@@ -29,7 +29,7 @@ exports.handler = (event, context, callback) => {
       const deleteAllUserRepoLinksParams = {
         TableName: "UserRepositoryLink",
         Key: {
-          RepositoryId: id,
+          Id: id,
           UserId: userId
         }
       };

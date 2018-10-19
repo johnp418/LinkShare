@@ -14,6 +14,8 @@
 
 - Id (Partition Key)
 - Name
+- RepoVote
+- LinkVote
 
 ## UserRepository
 
