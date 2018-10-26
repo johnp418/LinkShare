@@ -7,8 +7,8 @@ import RepositoryList from "./views/RepositoryList";
 import RepositoryDetailView from "./views/RepositoryDetailView";
 import CreateRepository from "./views/CreateRepository";
 
-// import SignIn from "./views/SignIn";
-// import SignUp from "./views/SignUp";
+import SignIn from "./views/SignIn";
+import SignUp from "./views/SignUp";
 // import Playground from "./Playground";
 
 // import AWS from "aws-sdk";
@@ -21,17 +21,17 @@ const Body = styled.div`
   height: 100%;
 `;
 
-const Routes = (props: any) => {
+const Routes = () => {
   return (
     <Body>
       <Navbar />
       <Switch>
         <Route exact path="/" component={RepositoryList} />
         {/* <Route path="/playground" component={Playground} /> */}
-        <Route path="/list/:repositoryId" component={RepositoryDetailView} />
+        <Route path="/repo/:repositoryId" component={RepositoryDetailView} />
         <Route path="/repo/create" component={CreateRepository} />
-        {/* <Route path="/auth/login" component={SignIn} /> */}
-        {/* <Route path="/auth/signUp" component={SignUp} /> */}
+        <Route path="/auth/login" component={SignIn} />
+        <Route path="/auth/signUp" component={SignUp} />
       </Switch>
     </Body>
   );

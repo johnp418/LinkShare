@@ -3,18 +3,24 @@ import * as actionTypes from "../actions";
 
 import loading from "./loading";
 import error from "./error";
+import currentUser from "./currentUser";
+import {
+  FETCH_REPOSITORIES,
+  IMPORT_REPOSITORY,
+  FETCH_REPOSITORY
+} from "src/actions/repository";
 
 // const repositoriesActionHandlers = {
 //   [actionTypes.FETCH_REPOSITORIES.REQUEST]:
 // }
-const {
-  FETCH_REPOSITORY,
-  FETCH_REPOSITORIES,
-  // UPDATE_REPOSITORY,
+// const {
+//   FETCH_REPOSITORY,
+//   FETCH_REPOSITORIES,
+//   // UPDATE_REPOSITORY,
 
-  // DELETE_REPOSITORY,
-  IMPORT_REPOSITORY
-} = actionTypes;
+//   // DELETE_REPOSITORY,
+//   IMPORT_REPOSITORY
+// } = actionTypes;
 
 const byId = (state = {}, action: any) => {
   switch (action.type) {
@@ -89,7 +95,6 @@ const links = (state = {}, action: any) => {
 };
 
 const entity = combineReducers({
-  activeRepository,
   repositories,
   repositoryNodes,
   links
@@ -101,6 +106,8 @@ const ui = combineReducers({
 });
 
 export default combineReducers({
+  activeRepository,
   entity,
-  ui
+  ui,
+  currentUser
 });

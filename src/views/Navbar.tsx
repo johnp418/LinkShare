@@ -1,8 +1,16 @@
 import * as React from "react";
-import { Link, withRouter } from "react-router-dom";
+import { Link, withRouter, RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
 import { Icon } from "../components/global";
 import { History, Location } from "history";
+
+import { IconButton } from "@material-ui/core";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import { connect } from "react-redux";
+import { AppState, CurrentUser } from "src/types";
+import { getCurrentUser } from "src/reducers/selectors";
+import { bindActionCreators, Dispatch } from "redux";
+import { signOut } from "src/actions/user";
 // import { Auth } from "aws-amplify";
 
 const NavbarContainer = styled.nav`
@@ -53,25 +61,12 @@ const StyledLink = styled(Link)`
 `;
 
 interface Props {
-  history: History;
-  location: Location;
+  currentUser: CurrentUser;
+  signOut: () => void;
 }
 
-class Navbar extends React.Component<Props> {
-  state = {};
-
-  async componentDidMount() {
-    // const userInfo = await Auth.currentUserInfo();
-    // if (userInfo) {
-    //   console.log("UserInfo ", userInfo);
-    //   this.setState({ user: userInfo });
-    // }
-  }
-
+class Navbar extends React.Component<Props & RouteComponentProps> {
   render() {
-    if (this.props.location.pathname.includes("/auth")) {
-      return undefined;
-    }
     // console.log("Navbar ", this.props);
 
     return (
@@ -88,20 +83,16 @@ class Navbar extends React.Component<Props> {
                 <Icon type="add" />
               </StyledLink>
             </MenuButton>
+            <IconButton>
+              <FavoriteIcon />
+            </IconButton>
           </MenuButtonContainer>
           <MenuButtonContainer>
             {/* {this.state.userInfo && (
               <MenuButton>
                 <button
                   onClick={() => {
-                    // Auth.onClick
-                    // Auth.signOut()
-                    //   .then(data => {
-                    //     console.log("Hello bitch ", data);
-                    //   })
-                    //   .catch(err => {
-                    //     console.log("Fail to sign out", err);
-                    //   });
+
                   }}
                 >
                   Sign Out
@@ -109,11 +100,11 @@ class Navbar extends React.Component<Props> {
               </MenuButton>
             )} */}
             <MenuButton>
-              {/* {this.state.userInfo ? (
-                <button>UserName here</button>
+              {this.props.currentUser ? (
+                <button onClick={this.props.signOut}>UserName here</button>
               ) : (
                 <StyledLink to="/auth/login">Sign In</StyledLink>
-              )} */}
+              )}
             </MenuButton>
           </MenuButtonContainer>
         </Menu>
@@ -122,4 +113,20 @@ class Navbar extends React.Component<Props> {
   }
 }
 
-export default (withRouter as any)(Navbar);
+const mapStateToProps = (state: AppState) => {
+  return {
+    currentUser: getCurrentUser(state)
+  };
+};
+const mapDispatchToProps = (dispatch: Dispatch) => {
+  return bindActionCreators(
+    {
+      signOut
+    },
+    dispatch
+  );
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)((withRouter as any)(Navbar));

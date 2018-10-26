@@ -16,7 +16,8 @@
     "object-literal-sort-keys": false,
     "no-console": false,
     "no-any": true,
-    "no-null-keyword": true,
+    // https://palantir.github.io/tslint/rules/no-null-keyword/
+    "no-null-keyword": false,
     "jsx-boolean-value": false,
     "jsx-no-lambda": false,
     "jsdoc-format": false

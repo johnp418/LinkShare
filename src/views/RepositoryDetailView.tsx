@@ -5,7 +5,8 @@ import styled from "styled-components";
 import * as actions from "../actions";
 import {
   createErrorMessageSelector,
-  createLoadingSelector
+  createLoadingSelector,
+  getActiveRepository
 } from "../reducers/selectors";
 import {
   //  Icon,
@@ -18,7 +19,6 @@ import {
   SectionContentContainer,
   SectionHeader
 } from "../components/Section";
-import { TreeNodeContainer } from "../components/Tree";
 // import * as R from "ramda";
 
 import Button from "@material-ui/core/Button";
@@ -27,28 +27,16 @@ import Button from "@material-ui/core/Button";
 // import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 // import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 // import Typography from "@material-ui/core/Typography";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import ExpandLessIcon from "@material-ui/icons/ExpandLess";
-import ThumbUpIcon from "@material-ui/icons/ThumbUp";
-import ThumbDownIcon from "@material-ui/icons/ThumbDown";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import FolderIcon from "@material-ui/icons/Folder";
-import FolderOpenIcon from "@material-ui/icons/FolderOpen";
-// import ListSubheader from "@material-ui/core/ListSubheader";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-// import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-// import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import ListItemText from "@material-ui/core/ListItemText";
+
 // import Avatar from "@material-ui/core/Avatar";
 // import IconButton from "@material-ui/core/IconButton";
 // import FormGroup from "@material-ui/core/FormGroup";
 // import FormControlLabel from "@material-ui/core/FormControlLabel";
 // import Checkbox from "@material-ui/core/Checkbox";
 // import Grid from "@material-ui/core/Grid";
-import Collapse from "@material-ui/core/Collapse";
 import { RouteComponentProps } from "react-router-dom";
+import { LinkMap, RepositoryNodeMap, AppState } from "src/types";
+import RepositoryNode from "./RepositoryNode";
 
 // const TreeNodeInfo = styled.div`
 //   display: flex;
@@ -84,11 +72,11 @@ interface MatchParams {
 
 interface Props extends RouteComponentProps<MatchParams> {
   loading: boolean;
-  fetchRepository: any;
-  links: any;
-  repositoryNodes: any;
-  root: any;
+  links: LinkMap;
+  repositoryNodes: RepositoryNodeMap;
+  root: string[];
   title: string;
+  fetchRepository: any;
   importRepository: any;
   deleteRepository: any;
   updateRepository: any;
@@ -108,84 +96,6 @@ class RepositoryDetailView extends React.Component<
 
   componentDidMount() {
     this.props.fetchRepository(this.props.match.params.repositoryId);
-  }
-
-  renderNode(node: any) {
-    console.log("Node ", node);
-    if (!node) {
-      return null;
-    }
-
-    return (
-      <TreeNodeContainer
-        key={node.id}
-        node={node}
-        render={(props: any) => {
-          const { type } = node;
-
-          return (
-            <List component="nav">
-              <ListItem
-                className="john-list"
-                divider
-                button
-                // onClick={this.handleClick}
-              >
-                <div className="john-list-toggle-button">
-                  {props.isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </div>
-                <div className="john-list-title">
-                  <ListItemIcon>
-                    {type === "folder" ? (
-                      props.isOpen ? (
-                        <FolderOpenIcon />
-                      ) : (
-                        <FolderIcon />
-                      )
-                    ) : (
-                      <img src={this.props.links[node.linkId].icon} />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText inset>
-                    {type === "folder" ? (
-                      `${node.title} (${node.children.length})`
-                    ) : (
-                      <a href={this.props.links[node.linkId].url}>
-                        {node.title}
-                      </a>
-                    )}
-                  </ListItemText>
-                </div>
-
-                <div className="john-list-action-buttons">
-                  <div className="john-list-action-button">
-                    {type !== "folder" && (
-                      <div>
-                        {this.props.links[node.linkId].popularity}
-                        <FavoriteIcon />
-                      </div>
-                    )}
-                  </div>
-                  <div className="john-list-action-button">
-                    <ThumbUpIcon />
-                  </div>
-                  <div className="john-list-action-button">
-                    <ThumbDownIcon />
-                  </div>
-                </div>
-              </ListItem>
-              <Collapse in={props.isOpen} timeout="auto" unmountOnExit>
-                {node.children &&
-                  node.children.map((childId: string) => {
-                    const child = this.props.repositoryNodes[childId];
-                    return this.renderNode(child);
-                  })}
-              </Collapse>
-            </List>
-          );
-        }}
-      />
-    );
   }
 
   handleImport = (e: any) => {
@@ -257,7 +167,14 @@ class RepositoryDetailView extends React.Component<
             <SectionContentContainer>
               {this.props.root.length > 0
                 ? this.props.root.map((rootId: string) => {
-                    return this.renderNode(this.props.repositoryNodes[rootId]);
+                    return (
+                      <RepositoryNode
+                        key={rootId}
+                        repositoryNodes={this.props.repositoryNodes}
+                        links={this.props.links}
+                        node={this.props.repositoryNodes[rootId]}
+                      />
+                    );
                   })
                 : "Empty repository"}
             </SectionContentContainer>
@@ -281,19 +198,20 @@ const errorSelector = createErrorMessageSelector([
   "IMPORT_REPOSITORY"
 ]);
 
-const mapStateToProps = (state: any, ownProps: Props) => {
+const mapStateToProps = (state: AppState, ownProps: Props) => {
   console.log("State ", state);
   console.log("OwnProps ", ownProps);
+  const activeRepository = getActiveRepository(state);
   return {
     loading: loadingSelector(state),
     error: errorSelector(state),
-    title: state.entity.activeRepository.title,
-    root: state.entity.activeRepository.root,
+    title: activeRepository.title,
+    root: activeRepository.root,
     repositoryNodes: state.entity.repositoryNodes,
     links: state.entity.links
   };
 };
-const mapDispatchToProps = (dispatch: Dispatch, getState: any) => {
+const mapDispatchToProps = (dispatch: Dispatch, getState: () => AppState) => {
   return bindActionCreators(actions as any, dispatch);
 };
 

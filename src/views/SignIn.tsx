@@ -3,7 +3,15 @@ import { Redirect } from "react-router-dom";
 import { Formik, FormikProps, Form, Field, FieldProps } from "formik";
 import * as Yup from "yup";
 import { Auth } from "aws-amplify";
-import AWS from "aws-sdk";
+import { Dispatch, bindActionCreators } from "redux";
+import { AppState, CurrentUser, APIProps } from "src/types";
+import { connect } from "react-redux";
+import { push } from "connected-react-router";
+import {
+  createLoadingSelector,
+  createErrorMessageSelector
+} from "src/reducers/selectors";
+import { SET_CURRENT_USER, login } from "src/actions/user";
 
 // import { StoreState } from '../types';
 // import { bindActionCreators, Dispatch } from 'redux';
@@ -17,23 +25,32 @@ const loginValidationSchema = Yup.object().shape({
   password: Yup.string()
 });
 
-class SignIn extends React.Component {
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
+
+interface Props {
+  currentUser: CurrentUser;
+  dispatch: Dispatch;
+  redirectTo: (url: string) => void;
+}
+
+class SignIn extends React.Component<Props & APIProps> {
   render() {
-    // const {
-    //   auth: { currentUser, loading, error }
-    // } = this.props;
+    const { currentUser, loading, error, dispatch } = this.props;
+    // dispatch(login("a", "b"))
+    // User is already signed in, redirect to Dashboard
+    if (currentUser) {
+      return <Redirect to="/" />;
+    }
+    const Loading = () => {
+      return <div>Loading...</div>;
+    };
 
-    // // User is already signed in, redirect to Dashboard
-    // if (currentUser) {
-    //   return <Redirect to="/" />;
-    // }
-    // const Loading = () => {
-    //   return <div>Loading...</div>;
-    // };
-
-    // if (loading) {
-    //   return <Loading />;
-    // }
+    if (loading) {
+      return <Loading />;
+    }
 
     return (
       <div>
@@ -48,14 +65,22 @@ class SignIn extends React.Component {
           onSubmit={(values: LoginFormValues) => {
             const { email, password } = values;
             console.log("Login Submit ", email, " Password ", password);
-            // this.props.login({ email, password });
+
             Auth.signIn(email, password)
-              .then(user => {
-                console.log("User ", user);
+              .then(data => {
+                console.log("User Sign in ", data);
               })
               .catch(err => {
-                console.log("LOGIN FAIL ", err);
+                console.log("Error Sign in ", err);
               });
+            // this.props.login({ email, password });
+            // Auth.signIn(email, password)
+            //   .then(user => {
+            //     console.log("User ", user);
+            //   })
+            //   .catch(err => {
+            //     console.log("LOGIN FAIL ", err);
+            //   });
           }}
           validationSchema={loginValidationSchema}
           render={(formikBag: FormikProps<LoginFormValues>) => {
@@ -104,7 +129,9 @@ class SignIn extends React.Component {
         <button
           onClick={(e: any) => {
             e.preventDefault();
-            this.props.history.push("/signup");
+
+            this.props.redirectTo("/auth/signup");
+            // this.props.history.push("/signup");
           }}
           color="green"
         >
@@ -112,42 +139,61 @@ class SignIn extends React.Component {
         </button>
         <button
           onClick={async (e: any) => {
-            // const session = await Auth.currentSession();
-            // console.log("Session !", session);
             Auth.currentAuthenticatedUser()
-              .then(user => console.log(user))
-              .catch(err => console.log(err));
-
+              .then(user => console.log("currentAuthenticatedUser ", user))
+              .catch(err => console.log("currentAuthenticatedUser err", err));
             Auth.currentSession()
-              .then(sess => console.log("sess ", sess))
-              .catch(err => console.log(err));
-            Auth.currentUserCredentials()
-              .then(sess => console.log("user cred ", sess))
-              .catch(err => console.log(err));
-            Auth.currentCredentials()
-              .then(sess => console.log("cred ", sess))
-              .catch(err => console.log(err));
+              .then(sess => console.log("currentSession ", sess))
+              .catch(err => console.log("currentSession err", err));
+            // Auth.currentUserCredentials()
+            //   .then(sess => console.log("currentUserCredentials ", sess))
+            //   .catch(err => console.log("currentUserCredentials err", err));
+            // Auth.currentCredentials()
+            //   .then(sess => console.log("currentCredentials ", sess))
+            //   .catch(err => console.log("currentCredentials err", err));
             Auth.currentUserInfo()
-              .then(sess => console.log("info ", sess))
-              .catch(err => console.log(err));
+              .then(sess => console.log("currentUserInfo ", sess))
+              .catch(err => console.log("currentUserInfo error", err));
           }}
           color="green"
         >
           Test Auth API
+        </button>
+        <button
+          onClick={async () => {
+            Auth.signOut()
+              .then(success => {
+                console.log("Sign out success ? ", success);
+              })
+              .catch(err => {
+                console.log("Error Sign out ", err);
+              });
+          }}
+        >
+          Sign out
         </button>
       </div>
     );
   }
 }
 
-export default SignIn;
-// const mapStateToProps = (state: StoreState) => ({
-//   auth: state.auth
-// });
+const mapStateToProps = (state: AppState) => ({
+  loading: createLoadingSelector([SET_CURRENT_USER])(state),
+  error: createErrorMessageSelector([SET_CURRENT_USER])(state),
+  currentUser: state.currentUser
+});
 // const mapDispatchToProps = (dispatch: Dispatch) => {
-//   return bindActionCreators({ login }, dispatch);
+//   return bindActionCreators(
+//     {
+//       redirectTo: url => {
+//         dispatch(push(url));
+//       }
+//     },
+//     dispatch
+//   );
 // };
-// export default connect(
-//   mapStateToProps,
-//   mapDispatchToProps
-// )(Login);
+export default connect(
+  mapStateToProps,
+  null
+  // mapDispatchToProps
+)(SignIn);

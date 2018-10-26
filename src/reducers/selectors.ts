@@ -1,4 +1,6 @@
+// import { createSelector } from "reselect";
 import * as _ from "lodash";
+import { AppState } from "src/types";
 
 // TODO: use ramda
 export const createLoadingSelector = (actions: any) => (state: any) => {
@@ -16,3 +18,9 @@ export const createErrorMessageSelector = (actions: any) => (state: any) => {
       .first() || ""
   );
 };
+
+// Application Selectors
+export const getRepository = (state: AppState, id: string) =>
+  state.entity.repositories.byId[id];
+export const getCurrentUser = (state: AppState) => state.currentUser;
+export const getActiveRepository = (state: AppState) => state.activeRepository;

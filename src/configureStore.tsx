@@ -2,7 +2,7 @@ import { createBrowserHistory } from "history";
 import { connectRouter, routerMiddleware } from "connected-react-router";
 import { createStore, applyMiddleware, compose } from "redux";
 import { createLogger } from "redux-logger";
-import thunk from "redux-thunk";
+import thunk, { ThunkMiddleware } from "redux-thunk";
 // import createSagaMiddleware from "redux-saga";
 import rootReducer from "./reducers";
 import apiMiddleware from "./apiMiddleware";
@@ -14,19 +14,29 @@ export const history = createBrowserHistory();
 
 // Add middlewares / enhancers here
 // const middlewares = [routerMiddleware(history), thunk, sagaMiddleware, createLogger()];
-const middlewares = [
+type Actions = { type: "FOO" } | { type: "BAR"; result: number } | any;
+type State = {
+  foo: string;
+};
+let middlewares = [
   routerMiddleware(history),
-  thunk,
-  apiMiddleware,
-  createLogger()
+  thunk as ThunkMiddleware,
+  apiMiddleware
 ];
+
+// tslint:disable-next-line
 const enhancers: any[] = [];
 
 // Install Chrome extension for Redux devtools
 // https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd
 if (process.env.NODE_ENV === "development") {
   // https://github.com/leoasis/redux-immutable-state-invariant
-  middlewares.unshift(reduxImmutableStateInvariant());
+  // middlewares.unshift(reduxImmutableStateInvariant());
+  middlewares = [
+    reduxImmutableStateInvariant(),
+    ...middlewares,
+    createLogger()
+  ];
 
   // tslint:disable-next-line
   const devToolsExtension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
@@ -52,8 +62,8 @@ const configureStore = (state = initialState) => {
   // Start sagas
   // sagaMiddleware.run(rootSaga);
 
-  if (module.hot) {
-    module.hot.accept("./reducers", () => {
+  if ((module as any).hot) {
+    (module as any).hot.accept("./reducers", () => {
       store.replaceReducer(rootReducer);
     });
   }

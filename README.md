@@ -15,7 +15,6 @@ To get started, you will need AWS-cli, local DynamoDB jar file, and terraform cl
 ## TODO
 
 - User authentication
-- Add typing with flow or typescript
 - UserRepoVote APIs + UI + DB
 - UserLinkVote APIs + UI + DB
 - Launch on AWS

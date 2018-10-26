@@ -1,15 +1,10 @@
 import { push } from "connected-react-router";
-import { Dispatch } from "redux";
+import { Dispatch, Middleware, AnyAction, MiddlewareAPI } from "redux";
 import { AxiosResponse, AxiosError } from "axios";
+import { AppState, ApiAction } from "./types";
 
-export default ({
-  dispatch,
-  getState
-}: {
-  dispatch: Dispatch;
-  getState: any;
-}) => {
-  return (next: Function) => (action: any) => {
+const middleware: Middleware = ({ dispatch, getState }: MiddlewareAPI) => {
+  return (next: Dispatch<AnyAction>) => (action: AnyAction) => {
     const {
       types,
       callAPI,
@@ -33,13 +28,14 @@ export default ({
     if (!shouldCallAPI(getState())) {
       return;
     }
+
     const [requestType, successType, failureType] = types;
     dispatch({ type: requestType, ...payload });
     return callAPI().then(
       (response: AxiosResponse) => {
         dispatch({ type: successType, ...payload, payload: response.data });
         if (redirectTo) {
-          dispatch(push("/path/to/somewhere"));
+          dispatch(push(redirectTo));
         }
       },
       (error: AxiosError) =>
@@ -51,3 +47,4 @@ export default ({
     );
   };
 };
+export default middleware;

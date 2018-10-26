@@ -58,7 +58,7 @@ app.get("/repo/:repositoryId", (req, res) => {
     .execute({
       event: { id: repositoryId, userId: "John Park" },
       lambdaPath: path.join(__dirname, "./lambdas/get-user-repository-link.js"),
-      timeoutMs: 3000
+      timeoutMs: 6000
     })
     .then(lambdaRes => {
       // console.log(done);
@@ -114,6 +114,11 @@ app.delete("/repo/:repositoryId", (req, res) => {
       res.status(500).send(err);
     });
 });
+
+app.get("/user/data", (req, res) => {
+  console.log("Get UserData ");
+  res.status(200).send({ wtf: true })
+})
 
 app.listen(3001, () => {
   console.log("Server started ");

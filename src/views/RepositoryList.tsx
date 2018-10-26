@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { compose, Dispatch } from "redux";
 import Repository from "./Repository";
-import { fetchRepositories } from "../actions";
+import { fetchRepositories } from "src/actions/repository";
 import {
   createLoadingSelector,
   createErrorMessageSelector
@@ -18,6 +18,8 @@ import { BlueScreen, Loading } from "../components/global";
 import { withStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
 import ListItemText from "@material-ui/core/ListItemText";
+import { RouteComponentProps } from "react-router-dom";
+import { APIProps, AppState, RepositoryMap } from "src/types";
 
 const styles = (theme: any) => {
   // console.log("Theme => ", theme);
@@ -28,15 +30,23 @@ const styles = (theme: any) => {
   };
 };
 
-class RepositoryList extends React.Component<any> {
+interface Props {
+  repositories: RepositoryMap;
+  fetchRepositories: () => void;
+}
+
+class RepositoryList extends React.Component<
+  Props & RouteComponentProps & APIProps
+> {
   componentDidMount() {
     this.props.fetchRepositories();
   }
 
   render() {
     // const { classes } = this.props;
-    if (this.props.error) {
-      return <BlueScreen error={this.props.error} />;
+    const { loading, error, repositories } = this.props;
+    if (error) {
+      return <BlueScreen error={error} />;
     }
     console.log("RepositoryList Props ", this.props);
 
@@ -44,22 +54,17 @@ class RepositoryList extends React.Component<any> {
       <Section>
         <SectionContainer>
           <SectionHeader>Repository</SectionHeader>
-          {this.props.loading && <Loading />}
-          {!this.props.loading && (
+          {loading && <Loading />}
+          {!loading && (
             <SectionContentContainer>
               <List>
-                {this.props.repositories.allIds.length <= 0 ? (
+                {repositories.allIds.length <= 0 ? (
                   <ListItemText inset>
                     There is no repository in the system
                   </ListItemText>
                 ) : (
-                  this.props.repositories.allIds.map((id: string) => {
-                    return (
-                      <Repository
-                        key={id}
-                        {...this.props.repositories.byId[id]}
-                      />
-                    );
+                  repositories.allIds.map((id: string) => {
+                    return <Repository key={id} {...repositories.byId[id]} />;
                   })
                 )}
               </List>
@@ -75,13 +80,12 @@ class RepositoryList extends React.Component<any> {
 const loadingSelector = createLoadingSelector(["FETCH_REPOSITORIES"]);
 const errorSelector = createErrorMessageSelector(["FETCH_REPOSITORIES"]);
 
-const mapStateToProps = (state: any) => ({
-  // loading: loadingSelector(state),
+const mapStateToProps = (state: AppState) => ({
   loading: loadingSelector(state),
   error: errorSelector(state),
   repositories: state.entity.repositories
 });
-const mapDispatchToProps = (dispatch: Dispatch, getState: any) => {
+const mapDispatchToProps = (dispatch: Dispatch, getState: () => AppState) => {
   return {
     fetchRepositories: (id: any) => dispatch(fetchRepositories(id) as any)
   };
