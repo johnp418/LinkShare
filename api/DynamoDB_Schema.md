@@ -14,13 +14,15 @@
 
 - Id (Partition Key)
 - Name
+- FavoriteRepo
+- FavoriteLink
 - RepoVote
 - LinkVote
 
 ## UserRepository
 
 - Id (Partition Key)
-- UserId (Sort Key)
+- UserId (Global Index)
 - Root
 - Title
 - Category
@@ -41,9 +43,9 @@
 - AddDate
 - LastModified
 
-## UserVote
+<!-- ## UserVote
 
 - UserId (Partition Key)
 - LinkId (Sort Key)
 - Like
-- Dislike
+- Dislike -->

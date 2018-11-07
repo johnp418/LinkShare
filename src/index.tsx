@@ -11,6 +11,7 @@ import "./test.scss";
 // import AWS from "aws-sdk";
 
 // import Amplify, { Hub, Logger } from "aws-amplify";
+import axios from "axios";
 import awsConfig from "./aws-config";
 import Amplify, { Auth } from "aws-amplify";
 import {

@@ -1,4 +1,6 @@
-export default (state = {}, action: any) => {
+import { AnyAction } from "redux";
+
+export default (state = {}, action: AnyAction) => {
   const { type } = action;
   const matches = /(.*)_(REQUEST|SUCCESS|FAILURE)/.exec(type);
 

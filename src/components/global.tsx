@@ -19,13 +19,16 @@ export const Loading = () => (
 );
 
 export const Icon = (props: any) => {
-  // const StyledIcon = styled.i`
-  // `
-  return <i className="material-icons">{props.type}</i>;
+  const { type, ...rest } = props;
+  return (
+    <i {...rest} className="material-icons" style={{ color: "white" }}>
+      {type}
+    </i>
+  );
 };
 
 // Props error type
-export const BlueScreen = (props: { error: AxiosError }) => {
+export const BlueScreen = (props: { error: string }) => {
   // const { error } = props;
   return (
     <Section>

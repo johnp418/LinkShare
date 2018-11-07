@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 const { hash } = require("../helpers/util");
+const { created, error } = require("../helpers/gateway-response");
 
 AWS.config.update({
   region: "us-west-2",
@@ -9,12 +10,15 @@ AWS.config.update({
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = (event, context) => {
-  const { title, userId } = event;
+  const { title } = event;
+  // const userId =
+  //   event.requestContext.authorizer.claims["cognito:username"]
+  const userId = "df00c9ad-fbb2-4809-8798-5622f2f5cadd";
   const AddDate = new Date().toISOString();
   const userRepoId = hash(title + userId + AddDate);
 
   console.log("Context ", context);
-  console.log("Remaining ", context.getRemainingTimeInMillis());
+  // console.log("Remaining ", context.getRemainingTimeInMillis());
 
   // Save user repos
   const Item = {
@@ -35,26 +39,11 @@ exports.handler = (event, context) => {
     .put(userRepoParams)
     .promise()
     .then(() => {
-      console.log("Created user repo");
-      context.done(null, {
-        statusCode: 201,
-        body: JSON.stringify(Item),
-        headers: {
-          "Access-Control-Allow-Origin": "*"
-        }
-      });
+      console.log("Response ", created(Item));
+      context.succeed(created(Item));
     })
     .catch(err => {
-      console.error("Error creating repo. Error:", err);
-      context.fail({
-        statusCode: 500,
-        body: JSON.stringify({
-          Error: err,
-          Reference: context.awsRequestId
-        }),
-        headers: {
-          "Access-Control-Allow-Origin": "*"
-        }
-      });
+      console.log("Error ", err);
+      context.fail(error(err, context));
     });
 };

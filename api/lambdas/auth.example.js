@@ -26,7 +26,7 @@ exports.handler = (event, context, callback) => {
     console.log("Event ", event);
     console.log("Context ", context);
     if (!event.requestContext.authorizer) {
-      errorResponse('Authorization not configured', context.awsRequestId, callback);
+      error('Authorization not configured', context.awsRequestId, callback);
       return;
     }
 
@@ -75,7 +75,7 @@ exports.handler = (event, context, callback) => {
         // from the Lambda function successfully. Specify a 500 HTTP status
         // code and provide an error message in the body. This will provide a
         // more meaningful error response to the end client.
-        errorResponse(err.message, context.awsRequestId, callback)
+        error(err.message, context.awsRequestId, callback)
     });
 };
 
@@ -107,7 +107,7 @@ function toUrlString(buffer) {
         .replace(/=/g, '');
 }
 
-function errorResponse(errorMessage, awsRequestId, callback) {
+function error(errorMessage, awsRequestId, callback) {
   callback(null, {
     statusCode: 500,
     body: JSON.stringify({

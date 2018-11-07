@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
-const { okResponse, errorResponse } = require("../helpers/gateway-response");
+const { queryR } = require("./lambda-util");
+const { ok, error } = require("../helpers/gateway-response");
 
 AWS.config.update({
   region: "us-west-2",
@@ -8,89 +9,88 @@ AWS.config.update({
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-const batchQuery = (repoParams, data) => {
-  return docClient
-    .query(repoParams)
-    .promise()
-    .then(batchData => {
-      console.log("Query Result ", batchData);
-      batchData.Items.forEach(item => data.push(item));
-      if (typeof batchData.LastEvaluatedKey !== "undefined") {
-        // continue scanning if we have more movies, because
-        // scan can retrieve a maximum of 1MB of data
-        return batchQuery(repoParams, data);
-      }
-      return Promise.resolve(data);
-    })
-    .catch(err => {
-      //
-      console.log("Query Error ", err);
-      throw new Error("Fail query ", err);
+const fetchAllLinks = async repoLinks => {
+  // Fetch each url data
+  const fetchAllLinks = repoLinks
+    .filter(repoLink => repoLink.Type !== "folder")
+    .map(repoLink => {
+      const getLinkParam = {
+        TableName: "Link",
+        Key: {
+          Id: repoLink.LinkId
+        },
+        ProjectionExpression: "#I, #L, Dislike, Icon, #U, Popularity",
+        ExpressionAttributeNames: {
+          "#I": "Id",
+          "#L": "Like",
+          "#U": "Url"
+        }
+      };
+      return docClient
+        .get(getLinkParam)
+        .promise()
+        .then(result => result.Item);
     });
+  return await Promise.all(fetchAllLinks);
 };
 
-exports.handler = async (event, context, callback) => {
-  console.log("Event ", event);
-  console.log("Context ", context);
-  // const requestBody = JSON.parse(event.body);
-  const { id, userId } = event;
+const getUserRepo = async repoId => {
   const getRepoQueryParams = {
     TableName: "UserRepository",
     Key: {
-      Id: id,
-      UserId: userId
+      Id: repoId
     }
   };
+  const repo = await docClient.get(getRepoQueryParams).promise();
+  if (!repo.Item) {
+    throw new Error("Repo does not exist");
+  }
+  return repo;
+};
+
+const getUserRepoLinks = async (repoId, userId) => {
+  const getUserRepoParams = {
+    TableName: "UserRepositoryLink",
+    IndexName: "UserRepoIndex",
+    ProjectionExpression:
+      "#I, #T, #LK, ParentId, Title, AddDate, LastModified, #L, Dislike, Children",
+    KeyConditionExpression: "RepositoryId = :r and UserId = :u",
+    ExpressionAttributeNames: {
+      "#I": "Id",
+      "#L": "Like",
+      "#T": "Type",
+      "#LK": "LinkId"
+    },
+    ExpressionAttributeValues: {
+      ":r": repoId,
+      ":u": userId
+    }
+  };
+  return await queryR(docClient, getUserRepoParams, []);
+};
+
+exports.handler = async (event, context, callback) => {
+  // console.log("Event ", event);
+  // console.log("Context ", context);
+  // const requestBody = JSON.parse(event.body);
+  const { id, userId = "df00c9ad-fbb2-4809-8798-5622f2f5cadd" } = event;
+  // const repoOwnerId =
+  //   event.requestContext.authorizer.claims["cognito:username"] || "Unknown";
+  const repoOwnerId = userId;
 
   try {
-    const userRepo = await docClient.get(getRepoQueryParams).promise();
-    const { Root: root, Title: title } = userRepo.Item;
+    // Retrieve user repo
+    const userRepo = await getUserRepo(id);
     console.log("UserRepo ", userRepo);
-    const getUserRepoParams = {
-      TableName: "UserRepositoryLink",
-      IndexName: "UserRepoIndex",
-      ProjectionExpression:
-        "#I, #T, #LK, ParentId, Title, AddDate, LastModified, #L, Dislike, Children",
-      KeyConditionExpression: "RepositoryId = :r and UserId = :u",
-      ExpressionAttributeNames: {
-        "#I": "Id",
-        "#L": "Like",
-        "#T": "Type",
-        "#LK": "LinkId"
-      },
-      ExpressionAttributeValues: {
-        ":r": id,
-        ":u": userId
-      }
-    };
+    const { Root: root, Title: title } = userRepo.Item;
 
-    const batchQueryResult = await batchQuery(getUserRepoParams, []);
-    // console.log("Batch Query Result ", data);
+    // Retrieve user repo nodes (folders / linkIds)
+    const userRepoLinks = await getUserRepoLinks(id, repoOwnerId);
 
-    // Fetch each url data
-    const fetchAllLinks = batchQueryResult
-      .filter(repoLink => repoLink.Type !== "folder")
-      .map(repoLink => {
-        const getLinkParam = {
-          TableName: "Link",
-          Key: {
-            Id: repoLink.LinkId
-          },
-          ProjectionExpression: "#I, #L, Dislike, Icon, #U, Popularity",
-          ExpressionAttributeNames: {
-            "#I": "Id",
-            "#L": "Like",
-            "#U": "Url"
-          }
-        };
-        return docClient
-          .get(getLinkParam)
-          .promise()
-          .then(result => result.Item);
-      });
+    // Retrieve all links
+    const allLinks = await fetchAllLinks(userRepoLinks);
 
-    let links = await Promise.all(fetchAllLinks);
-    links = links.reduce((acc, linkItem) => {
+    const links = allLinks.reduce((acc, linkItem) => {
       if (linkItem.Icon === "None") {
         const { Icon, ...rest } = linkItem;
         acc[linkItem.Id] = { ...rest };
@@ -99,14 +99,15 @@ exports.handler = async (event, context, callback) => {
       }
       return acc;
     }, {});
-
-    const repository = batchQueryResult.reduce((acc, repoLink) => {
+    const repository = userRepoLinks.reduce((acc, repoLink) => {
       acc[repoLink.Id] = repoLink;
       return acc;
     }, {});
-
-    context.succeed(okResponse({ id, title, root, repository, link: links }));
+    context.succeed(
+      ok({ id, userId: repoOwnerId, title, root, repository, link: links })
+    );
   } catch (err) {
-    context.fail(errorResponse(err, context));
+    console.log("GetUserRepositoryLink Error ", err.message);
+    context.fail(error(err, context));
   }
 };

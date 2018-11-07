@@ -1,5 +1,5 @@
 module.exports = {
-  okResponse: response => {
+  ok: response => {
     return {
       statusCode: 200,
       body: JSON.stringify(response),
@@ -8,11 +8,20 @@ module.exports = {
       }
     };
   },
-  errorResponse: (err, context) => {
+  created: response => {
+    return {
+      statusCode: 201,
+      body: JSON.stringify(response),
+      headers: {
+        "Access-Control-Allow-Origin": "*"
+      }
+    };
+  },
+  error: (err, context) => {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        Error: err,
+        Error: err.message,
         Reference: context.awsRequestId
       }),
       headers: {

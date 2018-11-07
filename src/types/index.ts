@@ -12,6 +12,7 @@ export interface AppState {
     id: string;
     root: string[];
     title: string;
+    userId: string;
   };
   ui: {
     loading: {
@@ -98,7 +99,7 @@ export interface RequestType {
 
 export interface APIProps {
   loading?: boolean;
-  error: AxiosError;
+  error: string;
 }
 
 export interface ApiAction {

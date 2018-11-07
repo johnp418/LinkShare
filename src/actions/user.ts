@@ -3,7 +3,12 @@ import { createRequestTypes, REQUEST, SUCCESS, FAILURE } from ".";
 import { AppState } from "src/types";
 import { Dispatch } from "redux";
 import { push } from "connected-react-router";
-import { ISignUpResult } from "amazon-cognito-identity-js";
+import {
+  ISignUpResult,
+  CognitoUserSession,
+  CognitoIdToken,
+  CognitoAccessToken
+} from "amazon-cognito-identity-js";
 import axios from "axios";
 
 export const SET_CURRENT_USER = createRequestTypes("SET_CURRENT_USER");
@@ -28,22 +33,27 @@ export const getAuthenticatedUser = (
   getState: () => AppState
 ) => {
   dispatch({ type: SET_CURRENT_USER[REQUEST] });
-  return Auth.currentUserInfo().then(
-    userInfo => {
-      if (userInfo) {
-        const {
-          attributes: { email },
-          username
-        } = userInfo;
-        dispatch({
-          type: SET_CURRENT_USER[SUCCESS],
-          payload: { username, email }
-        });
-        // Retrieve user info
-        dispatch(getUserInfo() as any);
-      } else {
-        console.log("UserInfo is empty");
-      }
+  return Auth.currentSession().then(
+    (currentSession: CognitoUserSession) => {
+      console.log("CurrentSession ", currentSession);
+      const accessToken: CognitoAccessToken = currentSession.getAccessToken();
+      const accessJwtToken = accessToken.getJwtToken();
+      const idToken: CognitoIdToken = currentSession.getIdToken();
+      const decodedPayload = idToken.decodePayload();
+      dispatch({
+        type: SET_CURRENT_USER[SUCCESS],
+        payload: {
+          username: decodedPayload["cognito:username"],
+          email: decodedPayload.email
+        }
+      });
+
+      // Set authorization header from now on
+      axios.defaults.headers.common.Authorization = accessJwtToken;
+
+      // Retrieve user info
+      // @ts-ignore
+      dispatch(getUserInfo());
     },
     err => {
       console.log("SetCurrentUser fail ", err);
@@ -55,12 +65,19 @@ export const getAuthenticatedUser = (
   );
 };
 
-export const login = (email: string, password: string) => {
+export const login = ({
+  email,
+  password
+}: {
+  email: string;
+  password: string;
+}) => {
   return (dispatch: Dispatch, getState: () => AppState) => {
     dispatch({ type: USER_SIGN_IN[REQUEST] });
     return Auth.signIn(email, password).then(
       response => {
-        dispatch({ type: USER_SIGN_IN[SUCCESS] });
+        console.log("SignIn Result ", response);
+        dispatch({ type: USER_SIGN_IN[SUCCESS], payload: response });
         // TODO: redirect user to previous link
         dispatch(push("/"));
       },
@@ -71,6 +88,7 @@ export const login = (email: string, password: string) => {
   };
 };
 
+// TODO: Test this
 export const signUp = (email: string, password: string) => {
   return (dispatch: Dispatch, getState: () => AppState) => {
     dispatch({ type: USER_SIGN_UP[REQUEST] });
@@ -89,7 +107,7 @@ export const signOut = () => {
   return (dispatch: Dispatch, getState: () => AppState) => {
     dispatch({ type: USER_SIGN_OUT[REQUEST] });
     return Auth.signOut().then(
-      response => {
+      () => {
         dispatch({ type: USER_SIGN_OUT[SUCCESS] });
       },
       err => {

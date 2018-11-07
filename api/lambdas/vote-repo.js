@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const { ok, error } = require("../helpers/gateway-response");
 
 AWS.config.update({
   region: "us-west-2",
@@ -8,11 +9,13 @@ AWS.config.update({
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = (event, context, callback) => {
-  const { linkId, like, userId } = event.body;
-  const linkUpdateParams = {
-    TableName: "Link",
+  // like as boolean
+  const { repoId, like, userId } = event.body;
+  const repoUpdateParams = {
+    TableName: "UserRepository",
     Key: {
-      Id: linkId
+      Id: repoId,
+      UserId: userId
     },
     ExpressionAttributeValues: {
       ":val": 1
@@ -22,11 +25,12 @@ exports.handler = (event, context, callback) => {
       : "set Dislike = Dislike + :val",
     ReturnValues: "UPDATED_NEW"
   };
-  const userVoteParams = {
-    TableName: "UserVote",
+  // TODO: Use set or map
+  const updateUserParams = {
+    TableName: "User",
     Key: {
       UserId: userId,
-      LinkId: linkId
+      Id: repoId
     },
     UpdateExpression: "set #L = :l",
     ExpressionAttributeNames: {
@@ -36,22 +40,23 @@ exports.handler = (event, context, callback) => {
       ":l": like ? 1 : -1
     }
   };
-  console.log("Link Update ", linkUpdateParams);
-  console.log("UserVote Update ", userVoteParams);
+  console.log("Repo Update ", repoUpdateParams);
+  console.log("UserVote Update ", updateUserParams);
 
   // Updates Link table
   docClient
-    .update(linkUpdateParams)
+    .update(repoUpdateParams)
     .promise()
     .then(data => {
       console.log("Data ", data);
       // Updates UserVote table
-      return docClient.update(userVoteParams).promise();
+      return docClient.update(updateUserParams).promise();
     })
     .then(data => {
       console.log("Updated UserVoteTable ", data);
+      context.succeed(ok(data));
     })
     .catch(err => {
-      console.error("Unable to update item. Error JSON:", err);
+      context.fail(error(err, context));
     });
 };

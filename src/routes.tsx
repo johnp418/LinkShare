@@ -21,17 +21,26 @@ const Body = styled.div`
   height: 100%;
 `;
 
-const Routes = () => {
+const App = () => {
   return (
-    <Body>
+    <React.Fragment>
       <Navbar />
       <Switch>
         <Route exact path="/" component={RepositoryList} />
-        {/* <Route path="/playground" component={Playground} /> */}
         <Route path="/repo/:repositoryId" component={RepositoryDetailView} />
-        <Route path="/repo/create" component={CreateRepository} />
+        <Route path="/create" component={CreateRepository} />
+      </Switch>
+    </React.Fragment>
+  );
+};
+
+const Routes = () => {
+  return (
+    <Body>
+      <Switch>
         <Route path="/auth/login" component={SignIn} />
         <Route path="/auth/signUp" component={SignUp} />
+        <Route path="/" component={App} />
       </Switch>
     </Body>
   );

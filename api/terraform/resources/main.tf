@@ -33,14 +33,13 @@ resource "aws_dynamodb_table" "link-table" {
   }
 }
 
-module "user_repo_table" {
-  source = "../modules/dynamodb"
+resource "aws_dynamodb_table" "user_repo_table" {
+  name           = "UserRepository"
+  hash_key       = "Id"
+  read_capacity  = 1
+  write_capacity = 1
 
-  table_name = "UserRepository"
-  hash_key   = "Id"
-  range_key  = "UserId"
-
-  table_attributes = [
+  attribute = [
     {
       name = "Id"
       type = "S"
@@ -50,6 +49,15 @@ module "user_repo_table" {
       type = "S"
     },
   ]
+
+  global_secondary_index = {
+    name            = "UserRepoIndex"
+    hash_key        = "Id"
+    range_key       = "UserId"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
+  }
 }
 
 resource "aws_dynamodb_table" "user-repository-link-table" {
@@ -84,28 +92,8 @@ resource "aws_dynamodb_table" "user-repository-link-table" {
   }
 }
 
-module "user_vote_table" {
-  source = "../modules/dynamodb"
-
-  table_name = "UserLinkVote"
-  hash_key   = "UserId"
-  range_key  = "LinkId"
-
-  table_attributes = [
-    {
-      name = "UserId"
-      type = "S"
-    },
-    {
-      name = "LinkId"
-      type = "S"
-    },
-  ]
-}
-
 module "user_table" {
-  source = "../modules/dynamodb"
-
+  source     = "../modules/dynamodb"
   table_name = "User"
   hash_key   = "Id"
 
@@ -116,3 +104,21 @@ module "user_table" {
     },
   ]
 }
+
+# module "user_vote_table" {
+#   source = "../modules/dynamodb"
+#   table_name = "UserLinkVote"
+#   hash_key   = "UserId"
+#   range_key  = "LinkId"
+#   table_attributes = [
+#     {
+#       name = "UserId"
+#       type = "S"
+#     },
+#     {
+#       name = "LinkId"
+#       type = "S"
+#     },
+#   ]
+# }
+

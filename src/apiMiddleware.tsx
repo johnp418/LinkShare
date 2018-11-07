@@ -35,7 +35,7 @@ const middleware: Middleware = ({ dispatch, getState }: MiddlewareAPI) => {
       (response: AxiosResponse) => {
         dispatch({ type: successType, ...payload, payload: response.data });
         if (redirectTo) {
-          dispatch(push(redirectTo));
+          dispatch(push(redirectTo(response.data)));
         }
       },
       (error: AxiosError) =>

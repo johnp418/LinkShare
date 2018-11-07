@@ -14,10 +14,6 @@ export const history = createBrowserHistory();
 
 // Add middlewares / enhancers here
 // const middlewares = [routerMiddleware(history), thunk, sagaMiddleware, createLogger()];
-type Actions = { type: "FOO" } | { type: "BAR"; result: number } | any;
-type State = {
-  foo: string;
-};
 let middlewares = [
   routerMiddleware(history),
   thunk as ThunkMiddleware,

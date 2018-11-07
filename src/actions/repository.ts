@@ -1,16 +1,15 @@
-import axios from "axios";
+import axios, { AxiosResponse, AxiosError } from "axios";
 import { createRequestTypes, REQUEST, SUCCESS, FAILURE } from ".";
 import * as BookmarkParser from "../helpers/bookmarkParser";
 import { RepositoryNodeMap, LinkMap, AppState } from "src/types";
 import { getCurrentUser } from "src/reducers/selectors";
+import { Dispatch } from 'redux';
 
 export const FETCH_REPOSITORY = createRequestTypes("FETCH_REPOSITORY");
 export const FETCH_REPOSITORIES = createRequestTypes("FETCH_REPOSITORIES");
+export const CREATE_REPOSITORY = createRequestTypes("CREATE_REPOSITORY");
 export const UPDATE_REPOSITORY = createRequestTypes("UPDATE_REPOSITORY");
 export const DELETE_REPOSITORY = createRequestTypes("DELETE_REPOSITORY");
-export const DELETE_REPOSITORY_LINK = createRequestTypes(
-  "DELETE_REPOSITORY_LINK"
-);
 export const IMPORT_REPOSITORY = createRequestTypes("IMPORT_REPOSITORY");
 export const FAVORITE_REPOSITORY = createRequestTypes("FAVORITE_REPOSITORY");
 export const LIKE_REPOSITORY = createRequestTypes("LIKE_REPOSITORY");
@@ -38,6 +37,23 @@ export const fetchRepositories = (repoId: string) => {
   };
 };
 
+export const createRepository = (title: string) => {
+  return {
+    types: [
+      CREATE_REPOSITORY[REQUEST],
+      CREATE_REPOSITORY[SUCCESS],
+      CREATE_REPOSITORY[FAILURE]
+    ],
+    callAPI: () =>
+      axios.post("/repo", {
+        title
+      }),
+    redirectTo: ({ id }: { id: string }) => {
+      return `/repo/${id}`;
+    }
+  };
+};
+
 export const updateRepository = (updateParams: {
   id: string;
   repositoryNodes: RepositoryNodeMap;
@@ -59,31 +75,41 @@ export const updateRepository = (updateParams: {
         root,
         link: links,
         repository: repositoryNodes
-      })
+      }),
+    redirectTo: () => {
+      return `/repo/${id}`;
+    }
   };
 };
+
+// export const deleteRepository = (repoId: string) => {
+//   return {
+//     types: [
+//       DELETE_REPOSITORY[REQUEST],
+//       DELETE_REPOSITORY[SUCCESS],
+//       DELETE_REPOSITORY[FAILURE]
+//     ],
+//     callAPI: () => axios.delete(`/repo/${repoId}`),
+//     redirectTo: () => "/"
+//   };
+// };
 
 export const deleteRepository = (repoId: string) => {
-  return {
-    types: [
-      DELETE_REPOSITORY[REQUEST],
-      DELETE_REPOSITORY[SUCCESS],
-      DELETE_REPOSITORY[FAILURE]
-    ],
-    callAPI: () => axios.delete(`/repo/${repoId}`)
-  };
-};
+  return (dispatch: Dispatch) => {
+    dispatch({ type: DELETE_REPOSITORY[REQUEST] });
+    return axios.delete(`/repo/${repoId}`).then((response: AxiosResponse) => {
+      console.log("Response => ", response);
+      dispatch({ type: DELETE_REPOSITORY[SUCCESS], payload: repoId });
+    }, (error: AxiosError) => {
+      console.log("Delete Error => ", error);
+      dispatch({
+        type: DELETE_REPOSITORY[FAILURE],
+        payload: error
+      });
+    })
 
-export const deleteRepositoryLink = (repoId: string, linkId: string) => {
-  return {
-    types: [
-      DELETE_REPOSITORY_LINK[REQUEST],
-      DELETE_REPOSITORY_LINK[SUCCESS],
-      DELETE_REPOSITORY_LINK[FAILURE]
-    ],
-    redirectTo: "/"
-  };
-};
+  }
+}
 
 export const importRepository = (file: File, repoId: string) => {
   return {
